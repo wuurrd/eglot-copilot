@@ -3,7 +3,7 @@
 ;; Author: Tyler Dodge (tyler@tdodge.consulting)
 ;; Version: 0.1
 ;; Keywords: convenience
-;; Package-Requires: ((emacs "28.2") (f "0.20.0") (bash-completion "3.1.0") (projectile "2.6.0-snapshot") (s "1.12.0") (company "0.9.13") (eglot-copilot "0.1") (dash "2.19.1") (ht "2.4"))
+;; Package-Requires: ((emacs "29.1") (f "0.20.0") (bash-completion "3.1.0") (projectile "2.6.0-snapshot") (s "1.12.0") (company "0.9.13") (eglot-copilot "0.1") (dash "2.19.1") (ht "2.4"))
 ;; URL: https://github.com/tyler-dodge/eglot-copilot
 ;; Git-Repository: git://github.com/tyler-dodge/eglot-copilot.git
 ;; This program is free software; you can redistribute it and/or modify
@@ -43,8 +43,7 @@
 (require 'eglot)
 
 (defcustom eglot-copilot-node-program "node"
-  "Path to node executable used to run the copilot agent.
-As of this writing, Node version must be less than 18."
+  "Path to node executable used to run the copilot agent."
   :type '(file))
 
 (defcustom eglot-copilot-node-agent-script "dist/agent.js"
@@ -299,14 +298,14 @@ See `company-transformers'."
   "Return the eglot server used by the shadow buffer for the current buffer."
   (-some-->
       (eglot-copilot--ensure-shadow-buffer (current-buffer))
-      (with-current-buffer it
-        (eglot-current-server))))
+    (with-current-buffer it
+      (eglot-current-server))))
 
 (defun eglot-copilot-shadow-kill ()
   "Kills the shadow buffer for the current buffer."
   (interactive)
   (let ((file-name (buffer-file-name)))
-     (-some--> (ht-get eglot-eglot-copilot--ensure-shadow-buffer-map (buffer-file-name))
+    (-some--> (ht-get eglot-eglot-copilot--ensure-shadow-buffer-map (buffer-file-name))
       (progn
         (kill-buffer it)
         (ht-remove eglot-eglot-copilot--ensure-shadow-buffer-map file-name)))))
@@ -385,7 +384,7 @@ Creates it if it does not exist."
                        (car it)
                        (substring it 1)
                        (string-to-number it))))
-                (when (> node-version 18) (user-error "Node version should be less than v18"))
+                (when (> node-version 21) (user-error "Node version should be less than v22"))
                 (-some--> (ht-get eglot-copilot--shadow-buffer-map file-name)
                   (when (buffer-live-p it) (kill-buffer it)))
                 (let ((buffer (with-current-buffer
@@ -559,7 +558,7 @@ the current `eglot-copilot-panel-solutions--accumulator' and `eglot-copilot-pane
 add a face to the replacement."
   (let* ((range (get-text-property 0 :range selection))
          (inhibit-modification-hooks t)
-        (insert-text (get-text-property 0 :insertText selection)))
+         (insert-text (get-text-property 0 :insertText selection)))
     (when insert-text
       (let* ((start-pt (save-excursion
                          (goto-char (eglot-copilot--lsp-position-to-point (plist-get range :start)))
@@ -586,10 +585,10 @@ add a face to the replacement."
 (defun eglot-copilot-counsel--preview-select-action (selection)
   "Counsel action for selecting a copilot preview."
   (let* ((buffer-name "*copilot-preview*")
-        (buffer-string
-         (with-current-buffer eglot-copilot-panel-buffer
-           (with-current-buffer eglot-copilot-panel--target-buffer
-             (buffer-string)))))
+         (buffer-string
+          (with-current-buffer eglot-copilot-panel-buffer
+            (with-current-buffer eglot-copilot-panel--target-buffer
+              (buffer-string)))))
     (with-current-buffer (or (get-buffer buffer-name) (generate-new-buffer buffer-name))
       (erase-buffer)
       (insert buffer-string)
